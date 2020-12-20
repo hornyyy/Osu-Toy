@@ -52,6 +52,7 @@ using osu.Game.Updater;
 using osu.Game.Utils;
 using LogLevel = osu.Framework.Logging.LogLevel;
 using System.IO;
+using Buttplug;
 
 namespace osu.Game
 {
@@ -79,6 +80,8 @@ namespace osu.Game
         private UserProfileOverlay userProfile;
 
         private BeatmapSetOverlay beatmapSetOverlay;
+
+        public ButtplugClient ButtplugClient;
 
         [Cached]
         private readonly ScreenshotManager screenshotManager = new ScreenshotManager();

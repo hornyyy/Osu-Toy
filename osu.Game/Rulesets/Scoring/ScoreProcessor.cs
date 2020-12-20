@@ -91,6 +91,7 @@ namespace osu.Game.Rulesets.Scoring
                 Rank.Value = rankFrom(accuracy.NewValue);
                 foreach (var mod in Mods.Value.OfType<IApplicableToScoreProcessor>())
                     Rank.Value = mod.AdjustRank(Rank.Value, accuracy.NewValue);
+
             };
 
             Mode.ValueChanged += _ => updateScore();
