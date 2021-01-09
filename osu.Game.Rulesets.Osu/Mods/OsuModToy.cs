@@ -20,7 +20,7 @@ using osu.Game.Screens.Play;
 namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
-        IApplicableToBeatmap, IApplicableToPlayer, IReadFromConfig
+        IApplicableToBeatmap, IApplicableToPlayer, IReadFromConfig, IApplicableToDrawableHitObjects
     {
         public enum MotorBehavior
         {
@@ -28,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             [Description("Bind to health")] Health,
             [Description("Bind to combo")] Combo,
             [Description("Bind to accuracy")] Accuracy,
-            //[Description("Bind to hit")] Hit
+            [Description("Bind to hit")] Hit
         }
 
         public override string Name => "Toy";
@@ -153,38 +153,37 @@ namespace osu.Game.Rulesets.Osu.Mods
         }
 
         // This probably doesn't work rn lol
-        //public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
-        //{
-        //    foreach (DrawableHitObject drawableHitObject in drawables)
-        //    {
-        //        drawableHitObject.State.ValueChanged += async state =>
-        //        {
-        //            if (!userPlaying) return;
-        //            if (state.NewValue != ArmedState.Hit) return;
+        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
+        {
+            foreach (DrawableHitObject drawableHitObject in drawables)
+            {
+                drawableHitObject.State.ValueChanged += async (state) =>
+                {
+                    if (!userPlaying) return;
+                    if (state.NewValue != ArmedState.Hit) return;
 
-        //            double speed = SpeedCap.Value;
+                    double speed = SpeedCap.Value;
 
-        //            for (uint i = 1; i <= MOTOR_COUNT; i++)
-        //            {
-        //                var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
-        //                var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+                    for (uint i = 1; i <= MOTOR_COUNT; i++)
+                    {
+                        var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                        var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-        //                if (behavior.Value != MotorBehavior.Hit) continue;
+                        if (behavior.Value != MotorBehavior.Hit) continue;
 
-        //                if (invert.Value)
-        //                {
-        //                    ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
-        //                    await Task.Delay(100);
-        //                    ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
-        //                }
-        //                else
-        //                {
-        //                    ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
-        //                }
-        //            }
-        //        };
-        //    }
-        //}
+                        if (invert.Value)
+                        {
+                            await ButtplugStuff.Instance.VibrateAtSpeedTimeout(1 - speed, i - 1);
+                        }
+                        else
+                        {
+                            await ButtplugStuff.Instance.VibrateAtSpeedTimeout(speed, i - 1);
+                        }
+
+                    }
+                };
+            }
+        }
 
         public ScoreRank AdjustRank(ScoreRank rank, double accuracy)
         {
@@ -302,6 +301,35 @@ namespace osu.Game.Rulesets.Osu.Mods
                     throw;
                 }
             }
+        }
+
+        public async Task VibrateAtSpeedAwaitable(double speed, uint motor = 0)
+        {
+            if (client?.Connected != true) return;
+
+            foreach (var device in client.Devices)
+            {
+                try
+                {
+                    if (motor >
+                        device.AllowedMessages[ServerMessage.Types.MessageAttributeType.VibrateCmd].FeatureCount - 1)
+                        continue;
+
+                    await device.SendVibrateCmd(new Dictionary<uint, double> {[motor] = speed});
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            }
+        }
+
+        public async Task VibrateAtSpeedTimeout(double speed, uint motor = 0, int timeout = 50)
+        {
+            await VibrateAtSpeedAwaitable(speed, motor);
+            await Task.Delay(timeout);
+            await VibrateAtSpeedAwaitable(0, motor);
         }
 
         public void StopAll()
