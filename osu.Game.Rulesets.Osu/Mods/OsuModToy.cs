@@ -12,6 +12,7 @@ using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
@@ -19,14 +20,15 @@ using osu.Game.Screens.Play;
 namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
-        IApplicableToBeatmap, IApplicableToPlayer
+        IApplicableToBeatmap, IApplicableToPlayer, IApplicableToDrawableHitObjects
     {
         public enum MotorBehavior
         {
             [Description("Do nothing")] None,
             [Description("Bind to health")] Health,
             [Description("Bind to combo")] Combo,
-            [Description("Bind to accuracy")] Accuracy
+            [Description("Bind to accuracy")] Accuracy,
+            [Description("Bind to hit")] Hit
         }
 
         public override string Name => "Toy";
@@ -138,13 +140,41 @@ namespace osu.Game.Rulesets.Osu.Mods
                     var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
                     var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                    if (behavior.Value == MotorBehavior.Combo)
+                    if (behavior.Value == MotorBehavior.Accuracy)
                         if (invert.Value)
                             ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
                         else
                             ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
                 }
             };
+        }
+
+        // This probably doesn't work rn lol
+        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
+        {
+            foreach (DrawableHitObject drawableHitObject in drawables)
+            {
+                drawableHitObject.State.ValueChanged += async state =>
+                {
+                    if (!userPlaying) return;
+
+                    double speed = SpeedCap.Value;
+
+                    for (uint i = 1; i <= MOTOR_COUNT; i++)
+                    {
+                        var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                        var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+
+                        if (behavior.Value == MotorBehavior.Hit)
+                            if (invert.Value)
+                                ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
+                            else
+                                ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                        await Task.Delay(100);
+                        ButtplugStuff.INSTANCE.VibrateAtSpeed(0, i - 1);
+                    }
+                };
+            }
         }
 
         public ScoreRank AdjustRank(ScoreRank rank, double accuracy)
