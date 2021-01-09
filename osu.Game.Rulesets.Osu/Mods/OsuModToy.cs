@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Buttplug;
 using FFmpeg.AutoGen;
+using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
@@ -20,12 +21,15 @@ using osu.Game.Screens.Play;
 namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
-        IApplicableToBeatmap, IApplicableToPlayer
+        IApplicableToBeatmap, IApplicableToTrack
     {
         public enum MotorMode
         {
+            [Description("Not available / Do Nothing")]
             None,
+            [Description("Bind to Health")]
             Health,
+            [Description("Bind to Combo")]
             Combo
         }
 
@@ -42,7 +46,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private int maxCombo = 1;
 
-        [SettingSource("Speed Cap", "Maximum speed at which the motors will vibrate.")]
+        [SettingSource("Speed Cap - Limit motor max speed", "Maximum speed at which the motors will vibrate.")]
         public BindableNumber<float> SpeedCap { get; } = new BindableFloat
         {
             Precision = 0.01f,
@@ -52,30 +56,54 @@ namespace osu.Game.Rulesets.Osu.Mods
             Value = 1.0f,
         };
 
+        [SettingSource("Max Combo Factor", "Maximum speed at which the motors will vibrate.")]
+        public BindableNumber<float> MaxComboFactor { get; } = new BindableFloat
+        {
+            Precision = 0.1f,
+            MinValue = 0.0f,
+            MaxValue = 1.0f,
+            Default = 0.3f,
+            Value = 0.3f,
+        };
+
         [SettingSource("Motor 1", "Defines how the first motor will react.")]
-        public BindableBool Motor1Reaction { get; } = new BindableBool(true);
+        public Bindable<MotorMode> Motor1Reaction { get; } = new Bindable<MotorMode>
+        {
+            Default = MotorMode.Health
+        };
 
         [SettingSource("Motor 2", "Defines how the second motor will react.")]
-        public BindableBool Motor2Reaction { get; } = new BindableBool(true);
-
-        [SettingSource("test dropdown")]
-        public Bindable<MotorMode> TestDropdown { get; } = new Bindable<MotorMode>();
-
-        public bool PerformFail()
+        public Bindable<MotorMode> Motor2Reaction { get; } = new Bindable<MotorMode>
         {
-            Precision = 0.01f,
-            MinValue = 0,
-            MaxValue = 1,
-            Default = 1,
-            Value = 1,
+            Default = MotorMode.Combo
         };
+
+        [SettingSource("Motor 3", "Defines how the second motor will react.")]
+        public Bindable<MotorMode> Motor3Reaction { get; } = new Bindable<MotorMode>
+        {
+            Default = MotorMode.None
+        };
+
+        [SettingSource("Motor 4", "Defines how the second motor will react.")]
+        public Bindable<MotorMode> Motor4Reaction { get; } = new Bindable<MotorMode>
+        {
+            Default = MotorMode.None
+        };
+
+
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
         {
             healthProcessor.Health.ValueChanged += health =>
             {
-                if(Motor1Reaction.Value)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)));
+                if(Motor1Reaction.Value == MotorMode.Health)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 0);
+                if(Motor2Reaction.Value == MotorMode.Health)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 1);
+                if(Motor3Reaction.Value == MotorMode.Health)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 2);
+                if(Motor4Reaction.Value == MotorMode.Health)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 3);
             };
         }
 
@@ -83,8 +111,14 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             scoreProcessor.Combo.ValueChanged += combo =>
             {
-                if(Motor2Reaction.Value)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (maxCombo / (float)3)), 1);
+                if(Motor1Reaction.Value == MotorMode.Combo)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 0);
+                if(Motor2Reaction.Value == MotorMode.Combo)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 1);
+                if(Motor3Reaction.Value == MotorMode.Combo)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 2);
+                if(Motor4Reaction.Value == MotorMode.Combo)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 3);
             };
         }
 
@@ -98,9 +132,11 @@ namespace osu.Game.Rulesets.Osu.Mods
             maxCombo = beatmap.HitObjects.Count;
         }
 
-        public void ApplyToPlayer(Player player)
+
+        public void ApplyToTrack(ITrack track)
         {
-            // player.Back;
+            track.Completed += ButtplugStuff.INSTANCE.StopAll;
+            track.Failed += ButtplugStuff.INSTANCE.StopAll;
         }
     }
 
@@ -174,6 +210,11 @@ namespace osu.Game.Rulesets.Osu.Mods
                     throw;
                 }
             }
+        }
+
+        public void StopAll()
+        {
+            client.StopAllDevicesAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private void logExeptions(Task t)
