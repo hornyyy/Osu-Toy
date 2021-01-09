@@ -184,6 +184,9 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 try
                 {
+                    if (motor > device.AllowedMessages[ServerMessage.Types.MessageAttributeType.VibrateCmd].FeatureCount - 1)
+                        continue;
+
                     await device.SendVibrateCmd(new Dictionary<uint, double> { [motor] = speed });
                 }
                 catch (Exception e)
