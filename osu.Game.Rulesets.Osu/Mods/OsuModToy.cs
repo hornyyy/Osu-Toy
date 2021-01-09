@@ -67,14 +67,26 @@ namespace osu.Game.Rulesets.Osu.Mods
         [SettingSource("Motor 1 Behavior", "Defines how the first motor will react.")]
         public Bindable<MotorBehavior> Motor1Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Health);
 
+        [SettingSource("Invert Motor 1")]
+        public BindableBool Motor1Invert { get; } = new BindableBool();
+
         [SettingSource("Motor 2 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor2Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Combo);
+
+        [SettingSource("Invert Motor 2")]
+        public BindableBool Motor2Invert { get; } = new BindableBool();
 
         [SettingSource("Motor 3 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor3Behavior { get; } = new Bindable<MotorBehavior>();
 
+        [SettingSource("Invert Motor 3")]
+        public BindableBool Motor3Invert { get; } = new BindableBool();
+
         [SettingSource("Motor 4 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor4Behavior { get; } = new Bindable<MotorBehavior>();
+
+        [SettingSource("Invert Motor 1")]
+        public BindableBool Motor4Invert { get; } = new BindableBool();
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
         {
@@ -82,14 +94,16 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 if (!userPlaying) return;
 
+                double speed = SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4));
+
                 if (Motor1Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 0);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 0);
                 if(Motor2Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 1);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 1);
                 if(Motor3Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 2);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 2);
                 if(Motor4Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 3);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 3);
             };
         }
 
@@ -99,14 +113,16 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 if (!userPlaying) return;
 
+                float speed = SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value);
+
                 if(Motor1Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 0);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 0);
                 if(Motor2Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 1);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor2Invert.Value), 1);
                 if(Motor3Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 2);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor3Invert.Value), 2);
                 if(Motor4Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 3);
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor4Invert.Value), 3);
             };
         }
 
@@ -128,6 +144,12 @@ namespace osu.Game.Rulesets.Osu.Mods
                 if (playing.NewValue == false)
                     ButtplugStuff.INSTANCE.StopAll();
             };
+        }
+
+        public static int BoolToInt(Boolean boolean)
+        {
+            if (boolean) return 1;
+            return -1;
         }
     }
 
