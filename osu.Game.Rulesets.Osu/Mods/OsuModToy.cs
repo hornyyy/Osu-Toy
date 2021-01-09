@@ -157,7 +157,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             foreach (DrawableHitObject drawableHitObject in drawables)
             {
-                drawableHitObject.State.ValueChanged += async state =>
+                drawableHitObject.State.ValueChanged += state =>
                 {
                     if (!userPlaying) return;
 
@@ -172,11 +172,12 @@ namespace osu.Game.Rulesets.Osu.Mods
 
                         if (invert.Value)
                             ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+                            // await Task.Delay(100);
+                            // ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
                         else
                             ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
 
-                        await Task.Delay(100);
-                        ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
+
                     }
                 };
             }

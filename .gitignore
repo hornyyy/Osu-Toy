@@ -336,3 +336,5 @@ inspectcode
 /BenchmarkDotNet.Artifacts
 
 *.GeneratedMSBuildEditorConfig.editorconfig
+
+fix_email.sh
