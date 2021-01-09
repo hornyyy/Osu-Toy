@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Buttplug;
 using FFmpeg.AutoGen;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
+using osu.Game.Configuration;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
+using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -33,7 +36,21 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private int maxCombo = 1;
 
-        private const double SPEED_CAP = 1.0;
+        [SettingSource("Speed Cap", "Maximum speed at which the motors will vibrate.")]
+        public BindableNumber<float> SpeedCap { get; } = new BindableFloat
+        {
+            Precision = 0.01f,
+            MinValue = 0.0f,
+            MaxValue = 1.0f,
+            Default = 1.0f,
+            Value = 1.0f,
+        };
+
+        [SettingSource("Motor 1", "Defines how the first motor will react.")]
+        public BindableBool Motor1Reaction { get; } = new BindableBool(true);
+
+        [SettingSource("Motor 2", "Defines how the second motor will react.")]
+        public BindableBool Motor2Reaction { get; } = new BindableBool(true);
 
         public bool PerformFail()
         {
@@ -44,7 +61,8 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             healthProcessor.Health.ValueChanged += health =>
             {
-                ButtplugStuff.INSTANCE.VibrateAtSpeed(SPEED_CAP * (1 - Math.Pow(health.NewValue, 4)));
+                if(Motor1Reaction.Value)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)));
             };
         }
 
@@ -52,7 +70,8 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             scoreProcessor.Combo.ValueChanged += combo =>
             {
-                ButtplugStuff.INSTANCE.VibrateAtSpeed(SPEED_CAP * (combo.NewValue / (maxCombo / (float) 3)), 1);
+                if(Motor2Reaction.Value)
+                    ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (maxCombo / (float)3)), 1);
             };
         }
 
