@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Buttplug;
 using FFmpeg.AutoGen;
@@ -21,6 +22,13 @@ namespace osu.Game.Rulesets.Osu.Mods
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableFailOverride, IApplicableToScoreProcessor,
         IApplicableToBeatmap
     {
+        public enum MotorMode
+        {
+            None,
+            Health,
+            Combo
+        }
+
         public override string Name => "Toy";
         public override string Description => "Play with toys.";
         public override string Acronym => "TY";
@@ -51,6 +59,9 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         [SettingSource("Motor 2", "Defines how the second motor will react.")]
         public BindableBool Motor2Reaction { get; } = new BindableBool(true);
+
+        [SettingSource("test dropdown")]
+        public Bindable<MotorMode> TestDropdown { get; } = new Bindable<MotorMode>();
 
         public bool PerformFail()
         {
