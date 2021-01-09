@@ -35,7 +35,7 @@ namespace osu.Game.Updater
         {
             try
             {
-                var releases = new OsuJsonWebRequest<GitHubRelease>("https://api.github.com/repos/ppy/osu/releases/latest");
+                var releases = new OsuJsonWebRequest<GitHubRelease>("https://api.github.com/repos/hornyyy/Osu-Toy/releases/latest");
 
                 await releases.PerformAsync();
 
@@ -45,7 +45,7 @@ namespace osu.Game.Updater
                 {
                     Notifications.Post(new SimpleNotification
                     {
-                        Text = $"A newer release of osu! has been found ({version} → {latest.TagName}).\n\n"
+                        Text = $"A newer release of osu!toy has been found ({version} → {latest.TagName}).\n\n"
                                + "Click here to download the new version, which can be installed over the top of your existing installation",
                         Icon = FontAwesome.Solid.Upload,
                         Activated = () =>
@@ -77,23 +77,23 @@ namespace osu.Game.Updater
                     bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".exe", StringComparison.Ordinal));
                     break;
 
-                case RuntimeInfo.Platform.MacOsx:
-                    bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".app.zip", StringComparison.Ordinal));
-                    break;
+                //case RuntimeInfo.Platform.MacOsx:
+                //    bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".app.zip", StringComparison.Ordinal));
+                //    break;
 
-                case RuntimeInfo.Platform.Linux:
-                    bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".AppImage", StringComparison.Ordinal));
-                    break;
+                //case RuntimeInfo.Platform.Linux:
+                //    bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".AppImage", StringComparison.Ordinal));
+                //    break;
 
-                case RuntimeInfo.Platform.iOS:
-                    // iOS releases are available via testflight. this link seems to work well enough for now.
-                    // see https://stackoverflow.com/a/32960501
-                    return "itms-beta://beta.itunes.apple.com/v1/app/1447765923";
+                //case RuntimeInfo.Platform.iOS:
+                //    // iOS releases are available via testflight. this link seems to work well enough for now.
+                //    // see https://stackoverflow.com/a/32960501
+                //    return "itms-beta://beta.itunes.apple.com/v1/app/1447765923";
 
-                case RuntimeInfo.Platform.Android:
-                    // on our testing device this causes the download to magically disappear.
-                    //bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".apk"));
-                    break;
+                //case RuntimeInfo.Platform.Android:
+                //    // on our testing device this causes the download to magically disappear.
+                //    //bestAsset = release.Assets?.Find(f => f.Name.EndsWith(".apk"));
+                //    break;
             }
 
             return bestAsset?.BrowserDownloadUrl ?? release.HtmlUrl;

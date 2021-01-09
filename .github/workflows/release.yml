@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet publish osu.Desktop -c Release -o release -r win-x64 --no-restore --no-self-contained /p:PublishSingleFile=true
+      run: dotnet publish osu.Desktop -c Release -o release -r win-x64 --no-restore --no-self-contained /p:PublishSingleFile=true /p:Version=${{ github.event.release.tag_name }}
     - name: Move exe
       run: cd release && move osu!.exe ../osu!.exe
     - name: Upload binaries
@@ -30,7 +30,6 @@ jobs:
       with:
         files: "osu!.exe"
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-
 
   build-release-self-contained:
     name: Build and Release (Self-Contained)
@@ -49,7 +48,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet publish osu.Desktop -c Release -o release -r win-x64 --no-restore --self-contained true /p:PublishSingleFile=true
+      run: dotnet publish osu.Desktop -c Release -o release -r win-x64 --no-restore --self-contained true /p:PublishSingleFile=true /p:Version=${{ github.event.release.tag_name }}
     - name: Rename and move exe
       run: cd release && move osu!.exe ../osu!.SelfContained.exe
     - name: Upload binaries
