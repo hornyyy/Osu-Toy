@@ -30,6 +30,9 @@ This mod has a few config settings, and a few of them aren't super clear on what
    
 (I tried to put these in the game, but while the settings entries have a description option, the game doesn't seem to do anything with that for some stupid reason?)
 
+## Updates
+This has update checking built in! It does not, however, update itself yet. We're working on that, but for now, you'll get a notification in-game with a link to the new release.
+
 ## Shortcomings
 
 Multi-device support is not good rn. Basically, it will run all connected devices, but the `Motor 0`s of each device will all be on the same setting. The good thing is that calling a motor beyond what a device is setup for has no consequences, so it's fine if multiple devices have different numbers of motors, but like I said they can't be configured independently.
