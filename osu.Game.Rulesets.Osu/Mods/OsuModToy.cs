@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Buttplug;
-using FFmpeg.AutoGen;
-using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
@@ -25,11 +23,11 @@ namespace osu.Game.Rulesets.Osu.Mods
     {
         public enum MotorMode
         {
-            [Description("Not available / Do Nothing")]
+            [Description("Do nothing")]
             None,
-            [Description("Bind to Health")]
+            [Description("Bind to health")]
             Health,
-            [Description("Bind to Combo")]
+            [Description("Bind to combo")]
             Combo
         }
 
@@ -46,7 +44,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         private int maxCombo = 1;
         private bool userPlaying = false;
 
-        [SettingSource("Speed Cap - Limit motor max speed", "Maximum speed at which the motors will vibrate.")]
+        [SettingSource("Motor Speed Max", "Maximum speed at which the motors will vibrate.")]
         public BindableNumber<float> SpeedCap { get; } = new BindableFloat
         {
             Precision = 0.01f,
@@ -56,7 +54,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             Value = 1.0f,
         };
 
-        [SettingSource("Max Combo Factor", "Maximum speed at which the motors will vibrate.")]
+        [SettingSource("Combo Factor Max")]
         public BindableNumber<float> MaxComboFactor { get; } = new BindableFloat
         {
             Precision = 0.1f,
@@ -66,16 +64,16 @@ namespace osu.Game.Rulesets.Osu.Mods
             Value = 0.3f,
         };
 
-        [SettingSource("Motor 1", "Defines how the first motor will react.")]
+        [SettingSource("Motor 1 Behavior", "Defines how the first motor will react.")]
         public Bindable<MotorMode> Motor1Reaction { get; } = new Bindable<MotorMode>(MotorMode.Health);
 
-        [SettingSource("Motor 2", "Defines how the second motor will react.")]
+        [SettingSource("Motor 2 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorMode> Motor2Reaction { get; } = new Bindable<MotorMode>(MotorMode.Combo);
 
-        [SettingSource("Motor 3", "Defines how the second motor will react.")]
+        [SettingSource("Motor 3 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorMode> Motor3Reaction { get; } = new Bindable<MotorMode>();
 
-        [SettingSource("Motor 4", "Defines how the second motor will react.")]
+        [SettingSource("Motor 4 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorMode> Motor4Reaction { get; } = new Bindable<MotorMode>();
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
