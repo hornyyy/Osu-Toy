@@ -18,19 +18,17 @@ using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableFailOverride, IApplicableToScoreProcessor,
-        IApplicableToBeatmap
+    public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
+        IApplicableToBeatmap, IApplicableToPlayer
     {
         public override string Name => "Toy";
         public override string Description => "Play with toys.";
         public override string Acronym => "TY";
 
-        public override IconUsage? Icon => FontAwesome.Solid.Adjust;
+        public override IconUsage? Icon => FontAwesome.Solid.PepperHot;
         public override ModType Type => ModType.Fun;
 
         public override bool Ranked => false;
-
-        public bool RestartOnFail => false;
 
         public override double ScoreMultiplier => 0.0;
 
@@ -54,8 +52,12 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public bool PerformFail()
         {
-            return false;
-        }
+            Precision = 0.01f,
+            MinValue = 0,
+            MaxValue = 1,
+            Default = 1,
+            Value = 1,
+        };
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
         {
@@ -83,6 +85,11 @@ namespace osu.Game.Rulesets.Osu.Mods
         public void ApplyToBeatmap(IBeatmap beatmap)
         {
             maxCombo = beatmap.HitObjects.Count;
+        }
+
+        public void ApplyToPlayer(Player player)
+        {
+            // player.Back;
         }
     }
 
