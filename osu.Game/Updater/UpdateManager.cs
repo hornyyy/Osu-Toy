@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Platform;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
@@ -94,7 +95,7 @@ namespace osu.Game.Updater
             }
 
             [BackgroundDependencyLoader]
-            private void load(OsuColour colours, ChangelogOverlay changelog, NotificationOverlay notificationOverlay)
+            private void load(OsuColour colours, NotificationOverlay notificationOverlay, GameHost host)
             {
                 Icon = FontAwesome.Solid.CheckSquare;
                 IconBackgound.Colour = colours.BlueDark;
@@ -102,7 +103,7 @@ namespace osu.Game.Updater
                 Activated = delegate
                 {
                     notificationOverlay.Hide();
-                    changelog.ShowBuild(OsuGameBase.CLIENT_STREAM_NAME, version);
+                    host.OpenUrlExternally($"https://github.com/hornyyy/Osu-Toy/releases/tag/{version}");
                     return true;
                 };
             }
