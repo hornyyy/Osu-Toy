@@ -10,7 +10,7 @@ To use, make sure intiface is running and you have a device connected, then enab
 This mod has a few config settings, and a few of them aren't super clear on what they do, so I'll document them here:
 
 1. `Motor Speed Max` - The max speed all motors will be limited to. As you might expect, 1=100%, 0=0%.
-2. `Combo Factor Max` - ~~~~
+2. `Combo Factor Max` - Sets the percentage of the total notes that will be used as the basis for full motor power on all combo motors. For example, a value of 0.3, the default, will result in full motor power when 30% of the max notes in the song are in a combo.
 
 (I tried to put these in the game, but while the settings entries have a description option, the game doesn't seem to do anything with that for some stupid reason?)
 

@@ -112,7 +112,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 if (!userPlaying) return;
 
-                float speed = SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value);
+                float speed = SpeedCap.Value * Math.Max(1, combo.NewValue / (float) maxCombo * MaxComboFactor.Value);
 
                 for (uint i = 1; i <= MOTOR_COUNT; i++)
                 {
