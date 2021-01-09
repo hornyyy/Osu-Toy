@@ -23,12 +23,10 @@ namespace osu.Game.Rulesets.Osu.Mods
     {
         public enum MotorBehavior
         {
-            [Description("Do nothing")]
-            None,
-            [Description("Bind to health")]
-            Health,
-            [Description("Bind to combo")]
-            Combo
+            [Description("Do nothing")] None,
+            [Description("Bind to health")] Health,
+            [Description("Bind to combo")] Combo,
+            [Description("Bind to accuracy")] Accuracy
         }
 
         public override string Name => "Toy";
@@ -64,29 +62,27 @@ namespace osu.Game.Rulesets.Osu.Mods
             Value = 0.3f,
         };
 
+        private const int MOTOR_COUNT = 4;
+
         [SettingSource("Motor 1 Behavior", "Defines how the first motor will react.")]
         public Bindable<MotorBehavior> Motor1Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Health);
 
-        [SettingSource("Invert Motor 1")]
-        public BindableBool Motor1Invert { get; } = new BindableBool();
+        [SettingSource("Invert Motor 1")] public BindableBool Motor1Invert { get; } = new BindableBool(true);
 
         [SettingSource("Motor 2 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor2Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Combo);
 
-        [SettingSource("Invert Motor 2")]
-        public BindableBool Motor2Invert { get; } = new BindableBool();
+        [SettingSource("Invert Motor 2")] public BindableBool Motor2Invert { get; } = new BindableBool();
 
         [SettingSource("Motor 3 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor3Behavior { get; } = new Bindable<MotorBehavior>();
 
-        [SettingSource("Invert Motor 3")]
-        public BindableBool Motor3Invert { get; } = new BindableBool();
+        [SettingSource("Invert Motor 3")] public BindableBool Motor3Invert { get; } = new BindableBool();
 
         [SettingSource("Motor 4 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor4Behavior { get; } = new Bindable<MotorBehavior>();
 
-        [SettingSource("Invert Motor 4")]
-        public BindableBool Motor4Invert { get; } = new BindableBool();
+        [SettingSource("Invert Motor 4")] public BindableBool Motor4Invert { get; } = new BindableBool();
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
         {
@@ -94,15 +90,18 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 if (!userPlaying) return;
 
-                double speed = SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4));
+                double speed = SpeedCap.Value * Math.Pow(health.NewValue, 4);
 
-                for(uint i = 1; i <= 4; i++)
+                for (uint i = 1; i <= MOTOR_COUNT; i++)
                 {
-                    var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
-                    var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+                    var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                    var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                    if(behavior.Value == MotorBehavior.Health)
-                        ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToFloat(invert.Value), i - 1);
+                    if (behavior.Value == MotorBehavior.Health)
+                        if (invert.Value)
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
+                        else
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
                 }
             };
         }
@@ -115,13 +114,35 @@ namespace osu.Game.Rulesets.Osu.Mods
 
                 float speed = SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value);
 
-                for (uint i = 1; i <= 4; i++)
+                for (uint i = 1; i <= MOTOR_COUNT; i++)
                 {
-                    var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
-                    var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+                    var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                    var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
                     if (behavior.Value == MotorBehavior.Combo)
-                        ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToFloat(invert.Value), i - 1);
+                        if (invert.Value)
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
+                        else
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                }
+            };
+
+            scoreProcessor.Accuracy.ValueChanged += accuracy =>
+            {
+                if (!userPlaying) return;
+
+                double speed = SpeedCap.Value * accuracy.NewValue;
+
+                for (uint i = 1; i <= MOTOR_COUNT; i++)
+                {
+                    var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                    var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+
+                    if (behavior.Value == MotorBehavior.Combo)
+                        if (invert.Value)
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
+                        else
+                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
                 }
             };
         }
@@ -206,10 +227,11 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 try
                 {
-                    if (motor > device.AllowedMessages[ServerMessage.Types.MessageAttributeType.VibrateCmd].FeatureCount - 1)
+                    if (motor >
+                        device.AllowedMessages[ServerMessage.Types.MessageAttributeType.VibrateCmd].FeatureCount - 1)
                         continue;
 
-                    await device.SendVibrateCmd(new Dictionary<uint, double> { [motor] = speed });
+                    await device.SendVibrateCmd(new Dictionary<uint, double> {[motor] = speed});
                 }
                 catch (Exception e)
                 {
