@@ -2,16 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Buttplug;
+using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
+using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
-    public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableFailOverride
+    public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableFailOverride, IApplicableToScoreProcessor,
+        IApplicableToBeatmap
     {
         public override string Name => "Toy";
         public override string Description => "Play with toys.";
@@ -26,6 +31,10 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override double ScoreMultiplier => 0.0;
 
+        private int maxCombo = 1;
+
+        private const double SPEED_CAP = 1.0;
+
         public bool PerformFail()
         {
             return false;
@@ -35,8 +44,26 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             healthProcessor.Health.ValueChanged += health =>
             {
-                ButtplugStuff.INSTANCE.VibrateAtSpeed(health.NewValue);
+                ButtplugStuff.INSTANCE.VibrateAtSpeed(SPEED_CAP * (1 - Math.Pow(health.NewValue, 4)));
             };
+        }
+
+        public void ApplyToScoreProcessor(ScoreProcessor scoreProcessor)
+        {
+            scoreProcessor.Combo.ValueChanged += combo =>
+            {
+                ButtplugStuff.INSTANCE.VibrateAtSpeed(SPEED_CAP * (combo.NewValue / (maxCombo / (float) 3)), 1);
+            };
+        }
+
+        public ScoreRank AdjustRank(ScoreRank rank, double accuracy)
+        {
+            return rank;
+        }
+
+        public void ApplyToBeatmap(IBeatmap beatmap)
+        {
+            maxCombo = beatmap.HitObjects.Count;
         }
     }
 
@@ -49,7 +76,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             get
             {
-                lock(padlock)
+                lock (padlock)
                 {
                     if (instance == null) instance = new ButtplugStuff();
                     return instance;
@@ -95,13 +122,14 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         #endregion
 
-        public void VibrateAtSpeed(double speed)
+        public void VibrateAtSpeed(double speed, uint motor = 0)
         {
             foreach (var device in client.Devices)
             {
                 try
                 {
-                    device.SendVibrateCmd(speed).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+                    device.SendVibrateCmd(new Dictionary<uint, double> {[motor] = speed})
+                        .ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
                 }
                 catch (Exception e)
                 {
@@ -114,7 +142,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         private void logExeptions(Task t)
         {
             var aggException = t.Exception.Flatten();
-            foreach (Exception exception in  aggException.InnerExceptions)
+            foreach (Exception exception in aggException.InnerExceptions)
                 Logger.Error(exception, $"Idk some exception from buttplug {exception.Message}");
         }
     }
