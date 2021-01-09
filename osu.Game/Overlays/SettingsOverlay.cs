@@ -22,6 +22,7 @@ namespace osu.Game.Overlays
         protected override IEnumerable<SettingsSection> CreateSections() => new SettingsSection[]
         {
             new GeneralSection(),
+            new ToySection(),
             new GraphicsSection(),
             new AudioSection(),
             new InputSection(createSubPanel(new KeyBindingPanel())),

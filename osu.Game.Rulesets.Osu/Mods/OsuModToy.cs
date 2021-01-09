@@ -20,7 +20,7 @@ using osu.Game.Screens.Play;
 namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
-        IApplicableToBeatmap, IApplicableToPlayer, IApplicableToDrawableHitObjects
+        IApplicableToBeatmap, IApplicableToPlayer, IApplicableToDrawableHitObjects, IReadFromConfig
     {
         public enum MotorBehavior
         {
@@ -69,19 +69,19 @@ namespace osu.Game.Rulesets.Osu.Mods
         [SettingSource("Motor 1 Behavior", "Defines how the first motor will react.")]
         public Bindable<MotorBehavior> Motor1Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Health);
 
-        [SettingSource("Invert Motor 1")] public BindableBool Motor1Invert { get; } = new BindableBool(true);
+        [SettingSource("Invert Motor 1")] public BindableBool Motor1Invert { get; } = new BindableBool();
 
-        [SettingSource("Motor 2 Behavior", "Defines how the second motor will react.")]
-        public Bindable<MotorBehavior> Motor2Behavior { get; } = new Bindable<MotorBehavior>(MotorBehavior.Combo);
+        [SettingSource("Motor 2 Behavior")]
+        public Bindable<MotorBehavior> Motor2Behavior { get; } = new Bindable<MotorBehavior>();
 
         [SettingSource("Invert Motor 2")] public BindableBool Motor2Invert { get; } = new BindableBool();
 
-        [SettingSource("Motor 3 Behavior", "Defines how the second motor will react.")]
+        [SettingSource("Motor 3 Behavior")]
         public Bindable<MotorBehavior> Motor3Behavior { get; } = new Bindable<MotorBehavior>();
 
         [SettingSource("Invert Motor 3")] public BindableBool Motor3Invert { get; } = new BindableBool();
 
-        [SettingSource("Motor 4 Behavior", "Defines how the second motor will react.")]
+        [SettingSource("Motor 4 Behavior")]
         public Bindable<MotorBehavior> Motor4Behavior { get; } = new Bindable<MotorBehavior>();
 
         [SettingSource("Invert Motor 4")] public BindableBool Motor4Invert { get; } = new BindableBool();
@@ -99,11 +99,12 @@ namespace osu.Game.Rulesets.Osu.Mods
                     var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
                     var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                    if (behavior.Value == MotorBehavior.Health)
-                        if (invert.Value)
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
-                        else
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                    if (behavior.Value != MotorBehavior.Health) continue;
+
+                    if (invert.Value)
+                        ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+                    else
+                        ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
                 }
             };
         }
@@ -121,11 +122,12 @@ namespace osu.Game.Rulesets.Osu.Mods
                     var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
                     var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                    if (behavior.Value == MotorBehavior.Combo)
-                        if (invert.Value)
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
-                        else
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                    if (behavior.Value != MotorBehavior.Combo) continue;
+
+                    if (invert.Value)
+                        ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+                    else
+                        ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
                 }
             };
 
@@ -140,11 +142,12 @@ namespace osu.Game.Rulesets.Osu.Mods
                     var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
                     var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                    if (behavior.Value == MotorBehavior.Accuracy)
-                        if (invert.Value)
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
-                        else
-                            ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                    if (behavior.Value != MotorBehavior.Accuracy) continue;
+
+                    if (invert.Value)
+                        ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+                    else
+                        ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
                 }
             };
         }
@@ -165,13 +168,15 @@ namespace osu.Game.Rulesets.Osu.Mods
                         var behavior = (Bindable<MotorBehavior>) GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
                         var invert = (BindableBool) GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                        if (behavior.Value == MotorBehavior.Hit)
-                            if (invert.Value)
-                                ButtplugStuff.INSTANCE.VibrateAtSpeed(1 - speed, i - 1);
-                            else
-                                ButtplugStuff.INSTANCE.VibrateAtSpeed(speed, i - 1);
+                        if (behavior.Value != MotorBehavior.Hit) continue;
+
+                        if (invert.Value)
+                            ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+                        else
+                            ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
+
                         await Task.Delay(100);
-                        ButtplugStuff.INSTANCE.VibrateAtSpeed(0, i - 1);
+                        ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
                     }
                 };
             }
@@ -193,7 +198,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 userPlaying = playing.NewValue;
                 if (playing.NewValue == false)
-                    ButtplugStuff.INSTANCE.StopAll();
+                    ButtplugStuff.Instance.StopAll();
             };
         }
 
@@ -202,14 +207,22 @@ namespace osu.Game.Rulesets.Osu.Mods
             if (boolean) return 1f;
             return -1f;
         }
+
+        public void ReadFromConfig(OsuConfigManager config)
+        {
+            ButtplugStuff.IntifaceAddress = config.Get<string>(OsuSetting.IntifaceAddress);
+            ButtplugStuff.Instance.ConnectIfNecessary();
+        }
     }
 
     public class ButtplugStuff
     {
+        public static string IntifaceAddress = "ws://127.0.0.1:12345";
+
         private static readonly object padlock = new object();
         private static ButtplugStuff instance;
 
-        public static ButtplugStuff INSTANCE
+        public static ButtplugStuff Instance
         {
             get
             {
@@ -222,10 +235,11 @@ namespace osu.Game.Rulesets.Osu.Mods
         }
 
         private readonly ButtplugClient client;
+        private bool connecting = false;
 
         public ButtplugStuff()
         {
-            client = new ButtplugClient("OsuClient");
+            client = new ButtplugClient("osu!");
             client.DeviceAdded += DeviceFound;
 
             Connect();
@@ -238,7 +252,8 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private async void Connect()
         {
-            var connector = new ButtplugWebsocketConnectorOptions(new Uri("ws://127.0.0.1:12345"));
+            connecting = true;
+            var connector = new ButtplugWebsocketConnectorOptions(new Uri(IntifaceAddress));
 
             try
             {
@@ -249,10 +264,24 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 Logger.Error(e, "Failed to connect to Buttplug :(");
             }
+            finally
+            {
+                connecting = false;
+            }
+
+            connecting = false;
+        }
+
+        public void ConnectIfNecessary()
+        {
+            if (client?.Connected == true || connecting) return;
+            Connect();
         }
 
         public async void VibrateAtSpeed(double speed, uint motor = 0)
         {
+            if (client?.Connected != true) return;
+
             foreach (var device in client.Devices)
             {
                 try
@@ -273,10 +302,11 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public void StopAll()
         {
-            client.StopAllDevicesAsync().ContinueWith(LogExeptions, TaskContinuationOptions.OnlyOnFaulted);
+            if (client?.Connected != true) return;
+            client.StopAllDevicesAsync().ContinueWith(LogExceptions, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private void LogExeptions(Task t)
+        private void LogExceptions(Task t)
         {
             var aggException = t.Exception.Flatten();
             foreach (Exception exception in aggException.InnerExceptions)

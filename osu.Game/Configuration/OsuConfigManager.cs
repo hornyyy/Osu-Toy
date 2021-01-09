@@ -139,6 +139,9 @@ namespace osu.Game.Configuration
             Set(OsuSetting.SeasonalBackgroundMode, SeasonalBackgroundMode.Sometimes);
 
             Set(OsuSetting.EditorWaveformOpacity, 1f);
+
+            // toy stuff
+            Set(OsuSetting.IntifaceAddress, "ws://127.0.0.1:12345");
         }
 
         public OsuConfigManager(Storage storage)
@@ -267,5 +270,8 @@ namespace osu.Game.Configuration
         SeasonalBackgroundMode,
         EditorWaveformOpacity,
         AutomaticallyDownloadWhenSpectating,
+
+        // toy stuff
+        IntifaceAddress
     }
 }

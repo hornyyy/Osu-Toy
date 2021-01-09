@@ -9,6 +9,6 @@
     <ProjectReference Include="..\osu.Game\osu.Game.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Buttplug" Version="1.0.0-beta.7" />
+    <PackageReference Include="Buttplug" Version="1.0.7" />
   </ItemGroup>
 </Project>
