@@ -28,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             [Description("Bind to health")] Health,
             [Description("Bind to combo")] Combo,
             [Description("Bind to accuracy")] Accuracy,
-            [Description("Bind to hit")] Hit
+            //[Description("Bind to hit")] Hit
         }
 
         public override string Name => "Toy";
@@ -153,38 +153,38 @@ namespace osu.Game.Rulesets.Osu.Mods
         }
 
         // This probably doesn't work rn lol
-        public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
-        {
-            foreach (DrawableHitObject drawableHitObject in drawables)
-            {
-                drawableHitObject.State.ValueChanged += async state =>
-                {
-                    if (!userPlaying) return;
-                    if (state.NewValue != ArmedState.Hit) return;
+        //public void ApplyToDrawableHitObjects(IEnumerable<DrawableHitObject> drawables)
+        //{
+        //    foreach (DrawableHitObject drawableHitObject in drawables)
+        //    {
+        //        drawableHitObject.State.ValueChanged += async state =>
+        //        {
+        //            if (!userPlaying) return;
+        //            if (state.NewValue != ArmedState.Hit) return;
 
-                    double speed = SpeedCap.Value;
+        //            double speed = SpeedCap.Value;
 
-                    for (uint i = 1; i <= MOTOR_COUNT; i++)
-                    {
-                        var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
-                        var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+        //            for (uint i = 1; i <= MOTOR_COUNT; i++)
+        //            {
+        //                var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+        //                var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
 
-                        if (behavior.Value != MotorBehavior.Hit) continue;
+        //                if (behavior.Value != MotorBehavior.Hit) continue;
 
-                        if (invert.Value)
-                        {
-                            ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
-                            await Task.Delay(100);
-                            ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
-                        }
-                        else
-                        {
-                            ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
-                        }
-                    }
-                };
-            }
-        }
+        //                if (invert.Value)
+        //                {
+        //                    ButtplugStuff.Instance.VibrateAtSpeed(1 - speed, i - 1);
+        //                    await Task.Delay(100);
+        //                    ButtplugStuff.Instance.VibrateAtSpeed(0, i - 1);
+        //                }
+        //                else
+        //                {
+        //                    ButtplugStuff.Instance.VibrateAtSpeed(speed, i - 1);
+        //                }
+        //            }
+        //        };
+        //    }
+        //}
 
         public ScoreRank AdjustRank(ScoreRank rank, double accuracy)
         {
