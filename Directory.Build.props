@@ -15,14 +15,6 @@
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
-  <ItemGroup Label="Code Analysis">
-    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.1" PrivateAssets="All" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1" PrivateAssets="All" />
-  </ItemGroup>
-  <PropertyGroup Label="Code Analysis">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <PropertyGroup Label="Documentation">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>

@@ -26,8 +26,6 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override double ScoreMultiplier => 0.0;
 
-        private readonly ButtplugStuff buttplugStuff = new ButtplugStuff();
-
         public bool PerformFail()
         {
             return false;
@@ -37,72 +35,87 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             healthProcessor.Health.ValueChanged += health =>
             {
-                buttplugStuff.VibrateAtSpeed((float)health.NewValue);
+                ButtplugStuff.INSTANCE.VibrateAtSpeed(health.NewValue);
             };
         }
+    }
 
-        private class ButtplugStuff
+    public class ButtplugStuff
+    {
+        private static readonly object padlock = new object();
+        private static ButtplugStuff instance;
+
+        public static ButtplugStuff INSTANCE
         {
-            private readonly ButtplugClient client;
-
-            public ButtplugStuff()
+            get
             {
-                var connector = new ButtplugWebsocketConnectorOptions(new Uri("ws://127.0.0.1:12345"));
-                client = new ButtplugClient("OsuClient");
-
-                try
+                lock(padlock)
                 {
-                    client.ConnectAsync(connector).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                    Logger.Log("Connected!!!");
-                }
-                catch (ButtplugConnectorException)
-                {
-                    Logger.Log("Failed to Connect");
+                    if (instance == null) instance = new ButtplugStuff();
+                    return instance;
                 }
             }
+        }
 
-            #region Disposal
+        private readonly ButtplugClient client;
 
-            ~ButtplugStuff()
+        public ButtplugStuff()
+        {
+            var connector = new ButtplugWebsocketConnectorOptions(new Uri("ws://127.0.0.1:12345"));
+            client = new ButtplugClient("OsuClient");
+
+            try
+            {
+                client.ConnectAsync(connector).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+                Logger.Error(null, "Connected!!!");
+            }
+            catch (ButtplugConnectorException)
+            {
+                Logger.Error(null, "Failed to Connect");
+            }
+        }
+
+        #region Disposal
+
+        ~ButtplugStuff()
+        {
+            try
+            {
+                if (client.Connected)
+                {
+                    client.StopAllDevicesAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+                    client.DisconnectAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e.Message);
+            }
+        }
+
+        #endregion
+
+        public void VibrateAtSpeed(double speed)
+        {
+            foreach (var device in client.Devices)
             {
                 try
                 {
-                    if (client.Connected)
-                    {
-                        client.StopAllDevicesAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                        client.DisconnectAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                    }
+                    device.SendVibrateCmd(speed).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(e.Message);
+                    Console.WriteLine(e);
+                    throw;
                 }
             }
+        }
 
-            #endregion
-
-            public void VibrateAtSpeed(double speed)
-            {
-                foreach (var device in client.Devices)
-                {
-                    try
-                    {
-                        device.SendVibrateCmd(speed).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
-                }
-            }
-
-            private void logExeptions(Task t)
-            {
-                var aggException = t.Exception.Flatten();
-                foreach(Exception exception in aggException.InnerExceptions)
-                    Logger.Error(exception, "Idk some exception from buttplug");
-            }
+        private void logExeptions(Task t)
+        {
+            var aggException = t.Exception.Flatten();
+            foreach (Exception exception in  aggException.InnerExceptions)
+                Logger.Error(exception, $"Idk some exception from buttplug {exception.Message}");
         }
     }
 }
