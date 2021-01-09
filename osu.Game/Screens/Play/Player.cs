@@ -71,7 +71,7 @@ namespace osu.Game.Screens.Play
 
         private readonly Bindable<bool> storyboardReplacesBackground = new Bindable<bool>();
 
-        protected readonly Bindable<bool> LocalUserPlaying = new Bindable<bool>();
+        public readonly Bindable<bool> LocalUserPlaying = new Bindable<bool>();
 
         public int RestartCount;
 

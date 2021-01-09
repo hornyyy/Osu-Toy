@@ -21,7 +21,7 @@ using osu.Game.Screens.Play;
 namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModToy : Mod, IApplicableToHealthProcessor, IApplicableToScoreProcessor,
-        IApplicableToBeatmap, IApplicableToTrack
+        IApplicableToBeatmap, IApplicableToPlayer
     {
         public enum MotorMode
         {
@@ -39,12 +39,12 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public override IconUsage? Icon => FontAwesome.Solid.PepperHot;
         public override ModType Type => ModType.Fun;
-
         public override bool Ranked => false;
 
         public override double ScoreMultiplier => 0.0;
 
         private int maxCombo = 1;
+        private bool userPlaying = false;
 
         [SettingSource("Speed Cap - Limit motor max speed", "Maximum speed at which the motors will vibrate.")]
         public BindableNumber<float> SpeedCap { get; } = new BindableFloat
@@ -82,7 +82,9 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             healthProcessor.Health.ValueChanged += health =>
             {
-                if(Motor1Reaction.Value == MotorMode.Health)
+                if (!userPlaying) return;
+
+                if (Motor1Reaction.Value == MotorMode.Health)
                     ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 0);
                 if(Motor2Reaction.Value == MotorMode.Health)
                     ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4)), 1);
@@ -97,6 +99,8 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             scoreProcessor.Combo.ValueChanged += combo =>
             {
+                if (!userPlaying) return;
+
                 if(Motor1Reaction.Value == MotorMode.Combo)
                     ButtplugStuff.INSTANCE.VibrateAtSpeed(SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value), 0);
                 if(Motor2Reaction.Value == MotorMode.Combo)
@@ -118,11 +122,14 @@ namespace osu.Game.Rulesets.Osu.Mods
             maxCombo = beatmap.HitObjects.Count;
         }
 
-
-        public void ApplyToTrack(ITrack track)
+        public void ApplyToPlayer(Player player)
         {
-            track.Completed += ButtplugStuff.INSTANCE.StopAll;
-            track.Failed += ButtplugStuff.INSTANCE.StopAll;
+            player.LocalUserPlaying.ValueChanged += playing =>
+            {
+                userPlaying = playing.NewValue;
+                if (playing.NewValue == false)
+                    ButtplugStuff.INSTANCE.StopAll();
+            };
         }
     }
 
@@ -147,48 +154,39 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public ButtplugStuff()
         {
-            var connector = new ButtplugWebsocketConnectorOptions(new Uri("ws://127.0.0.1:12345"));
             client = new ButtplugClient("OsuClient");
+            client.DeviceAdded += DeviceFound;
 
-            try
-            {
-                client.ConnectAsync(connector).ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                Logger.Error(null, "Connected!!!");
-            }
-            catch (ButtplugConnectorException)
-            {
-                Logger.Error(null, "Failed to Connect");
-            }
+            Connect();
         }
 
-        #region Disposal
-
-        ~ButtplugStuff()
+        private async void DeviceFound(object sender, DeviceAddedEventArgs e)
         {
+            await client.StopScanningAsync();
+        }
+
+        private async void Connect()
+        {
+            var connector = new ButtplugWebsocketConnectorOptions(new Uri("ws://127.0.0.1:12345"));
+
             try
             {
-                if (client.Connected)
-                {
-                    client.StopAllDevicesAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                    client.DisconnectAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
-                }
+                await client.ConnectAsync(connector);
+                await client.StartScanningAsync();
             }
-            catch (Exception e)
+            catch (ButtplugConnectorException e)
             {
-                Logger.Log(e.Message);
+                Logger.Error(e, "Failed to connect to Buttplug :(");
             }
         }
 
-        #endregion
-
-        public void VibrateAtSpeed(double speed, uint motor = 0)
+        public async void VibrateAtSpeed(double speed, uint motor = 0)
         {
             foreach (var device in client.Devices)
             {
                 try
                 {
-                    device.SendVibrateCmd(new Dictionary<uint, double> {[motor] = speed})
-                        .ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+                    await device.SendVibrateCmd(new Dictionary<uint, double> { [motor] = speed });
                 }
                 catch (Exception e)
                 {
@@ -200,10 +198,10 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public void StopAll()
         {
-            client.StopAllDevicesAsync().ContinueWith(logExeptions, TaskContinuationOptions.OnlyOnFaulted);
+            client.StopAllDevicesAsync().ContinueWith(LogExeptions, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private void logExeptions(Task t)
+        private void LogExeptions(Task t)
         {
             var aggException = t.Exception.Flatten();
             foreach (Exception exception in aggException.InnerExceptions)
