@@ -83,8 +83,8 @@ namespace osu.Desktop
         {
             switch (RuntimeInfo.OS)
             {
-                case RuntimeInfo.Platform.Windows:
-                    return new SquirrelUpdateManager();
+                //case RuntimeInfo.Platform.Windows:
+                //    return new SquirrelUpdateManager();
 
                 default:
                     return new SimpleUpdateManager();
