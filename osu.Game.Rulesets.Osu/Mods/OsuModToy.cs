@@ -67,30 +67,16 @@ namespace osu.Game.Rulesets.Osu.Mods
         };
 
         [SettingSource("Motor 1", "Defines how the first motor will react.")]
-        public Bindable<MotorMode> Motor1Reaction { get; } = new Bindable<MotorMode>
-        {
-            Default = MotorMode.Health
-        };
+        public Bindable<MotorMode> Motor1Reaction { get; } = new Bindable<MotorMode>(MotorMode.Health);
 
         [SettingSource("Motor 2", "Defines how the second motor will react.")]
-        public Bindable<MotorMode> Motor2Reaction { get; } = new Bindable<MotorMode>
-        {
-            Default = MotorMode.Combo
-        };
+        public Bindable<MotorMode> Motor2Reaction { get; } = new Bindable<MotorMode>(MotorMode.Combo);
 
         [SettingSource("Motor 3", "Defines how the second motor will react.")]
-        public Bindable<MotorMode> Motor3Reaction { get; } = new Bindable<MotorMode>
-        {
-            Default = MotorMode.None
-        };
+        public Bindable<MotorMode> Motor3Reaction { get; } = new Bindable<MotorMode>();
 
         [SettingSource("Motor 4", "Defines how the second motor will react.")]
-        public Bindable<MotorMode> Motor4Reaction { get; } = new Bindable<MotorMode>
-        {
-            Default = MotorMode.None
-        };
-
-
+        public Bindable<MotorMode> Motor4Reaction { get; } = new Bindable<MotorMode>();
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
         {
