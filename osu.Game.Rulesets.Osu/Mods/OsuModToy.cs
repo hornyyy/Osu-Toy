@@ -85,7 +85,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         [SettingSource("Motor 4 Behavior", "Defines how the second motor will react.")]
         public Bindable<MotorBehavior> Motor4Behavior { get; } = new Bindable<MotorBehavior>();
 
-        [SettingSource("Invert Motor 1")]
+        [SettingSource("Invert Motor 4")]
         public BindableBool Motor4Invert { get; } = new BindableBool();
 
         public void ApplyToHealthProcessor(HealthProcessor healthProcessor)
@@ -96,14 +96,14 @@ namespace osu.Game.Rulesets.Osu.Mods
 
                 double speed = SpeedCap.Value * (1 - Math.Pow(health.NewValue, 4));
 
-                if (Motor1Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 0);
-                if(Motor2Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 1);
-                if(Motor3Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 2);
-                if(Motor4Behavior.Value == MotorBehavior.Health)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 3);
+                for(uint i = 1; i <= 4; i++)
+                {
+                    var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                    var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+
+                    if(behavior.Value == MotorBehavior.Health)
+                        ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToFloat(invert.Value), i - 1);
+                }
             };
         }
 
@@ -115,14 +115,14 @@ namespace osu.Game.Rulesets.Osu.Mods
 
                 float speed = SpeedCap.Value * (combo.NewValue / (float) maxCombo * MaxComboFactor.Value);
 
-                if(Motor1Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor1Invert.Value), 0);
-                if(Motor2Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor2Invert.Value), 1);
-                if(Motor3Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor3Invert.Value), 2);
-                if(Motor4Behavior.Value == MotorBehavior.Combo)
-                    ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToInt(Motor4Invert.Value), 3);
+                for (uint i = 1; i <= 4; i++)
+                {
+                    var behavior = (Bindable<MotorBehavior>)GetType().GetProperty($"Motor{i}Behavior").GetValue(this);
+                    var invert = (BindableBool)GetType().GetProperty($"Motor{i}Invert").GetValue(this);
+
+                    if (behavior.Value == MotorBehavior.Combo)
+                        ButtplugStuff.INSTANCE.VibrateAtSpeed(speed * BoolToFloat(invert.Value), i - 1);
+                }
             };
         }
 
@@ -146,10 +146,10 @@ namespace osu.Game.Rulesets.Osu.Mods
             };
         }
 
-        public static int BoolToInt(Boolean boolean)
+        public static float BoolToFloat(bool boolean)
         {
-            if (boolean) return 1;
-            return -1;
+            if (boolean) return 1f;
+            return -1f;
         }
     }
 
