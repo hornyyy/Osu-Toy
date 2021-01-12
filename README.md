@@ -6,6 +6,8 @@ This is a custom build of osu!lazer that includes a custom mod for Buttplug.io s
 
 To use, make sure intiface is running and you have a device connected, then enable the `Toy` mod in mods menu, `and your motor is revved and VROOOM VROOOM AWOOOOOOGAHHH HUFFA HUFFA WAOOOOOOOOO`
 
+(Disclaimer: Please do not use this mod while accessing public game servers with unsuspecting players. This is meant for single player and/or matched play with consenting participants. Thank you!)
+
 ## Settings
 
 If you are running Intiface on a different port or want to use a different address entirely, you can change the address in Settings under Toy > Intiface. If the game is already connected to an existing Intiface, you will need to restart for the change to take effect.
