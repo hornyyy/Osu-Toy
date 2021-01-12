@@ -15,7 +15,7 @@ using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
-using osu.Game.Graphics;
+using osu.Game.Configuration;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
@@ -74,6 +74,9 @@ namespace osu.Game.Screens.Multi
 
         [Resolved(CanBeNull = true)]
         private OsuLogo logo { get; set; }
+
+        [Resolved]
+        private OsuConfigManager config { get; set; }
 
         private readonly Drawable header;
         private readonly Drawable headerBackground;
@@ -243,6 +246,9 @@ namespace osu.Game.Screens.Multi
         {
             this.FadeIn();
             waves.Show();
+
+            if (config.Get<bool>(OsuSetting.MultiplayerConsentAcknowledged) != true)
+                this.Push(new MultiplayerConsent());
 
             beginHandlingTrack();
         }
