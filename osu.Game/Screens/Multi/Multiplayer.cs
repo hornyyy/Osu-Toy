@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -9,20 +8,17 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
-using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
-using osu.Game.Graphics;
+using osu.Game.Configuration;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
-using osu.Game.Overlays.Notifications;
 using osu.Game.Screens.Menu;
 using osu.Game.Screens.Multi.Components;
 using osu.Game.Screens.Multi.Lounge;
@@ -38,9 +34,6 @@ namespace osu.Game.Screens.Multi
     public class Multiplayer : OsuScreen
     {
         public override bool CursorVisible => (screenStack.CurrentScreen as IMultiplayerSubScreen)?.CursorVisible ?? true;
-
-        [Resolved]
-        protected NotificationOverlay Notifications { get; private set; }
 
         // this is required due to PlayerLoader eventually being pushed to the main stack
         // while leases may be taken out by a subscreen.
@@ -75,12 +68,14 @@ namespace osu.Game.Screens.Multi
         [Resolved(CanBeNull = true)]
         private OsuLogo logo { get; set; }
 
+        [Resolved]
+        private OsuConfigManager config { get; set; }
+
         private readonly Drawable header;
         private readonly Drawable headerBackground;
 
         public Multiplayer()
         {
-            // Notifications = new NotificationOverlay();
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
             RelativeSizeAxes = Axes.Both;
@@ -166,12 +161,6 @@ namespace osu.Game.Screens.Multi
 
             if (idleTracker != null)
                 isIdle.BindTo(idleTracker.IsIdle);
-
-            Notifications?.Post(new SimpleNotification
-            {
-                Text = $"Disclaimer: Please do not use this mod while accessing public game servers with unsuspecting players. \n" +
-                       $"This is meant for single player and/or matched play with consenting participants. Thank you!"
-            });
         }
 
         private void onlineStateChanged(ValueChangedEvent<APIState> state) => Schedule(() =>
@@ -243,6 +232,9 @@ namespace osu.Game.Screens.Multi
         {
             this.FadeIn();
             waves.Show();
+
+            if (config.Get<bool>(OsuSetting.MultiplayerConsentAcknowledged) != true)
+                this.Push(new MultiplayerConsent());
 
             beginHandlingTrack();
         }

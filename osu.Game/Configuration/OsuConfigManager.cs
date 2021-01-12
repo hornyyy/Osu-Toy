@@ -142,6 +142,7 @@ namespace osu.Game.Configuration
 
             // toy stuff
             Set(OsuSetting.IntifaceAddress, "ws://127.0.0.1:12345");
+            Set(OsuSetting.MultiplayerConsentAcknowledged, false);
         }
 
         public OsuConfigManager(Storage storage)
@@ -272,6 +273,7 @@ namespace osu.Game.Configuration
         AutomaticallyDownloadWhenSpectating,
 
         // toy stuff
-        IntifaceAddress
+        IntifaceAddress,
+        MultiplayerConsentAcknowledged
     }
 }
